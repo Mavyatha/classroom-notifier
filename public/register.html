@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Classroom Notifier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+        
+        .container { 
+            max-width: 600px; 
+            margin: 40px auto; 
+            padding: 20px; 
+            position: relative;
+            z-index: 1;
+        }
+        
+        .register-box { 
+            background: white;
+            padding: 40px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        h2 { 
+            color: #1a1a2e; 
+            margin-bottom: 30px; 
+            text-align: center;
+            font-size: 26px;
+            font-weight: 600;
+        }
+        
+        .form-row { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            margin-bottom: 20px; 
+        }
+        
+        .form-group { 
+            margin-bottom: 20px; 
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: #333; 
+            font-size: 14px; 
+            font-weight: 500;
+        }
+        
+        input, select { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 15px; 
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus { 
+            outline: none; 
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.1);
+        }
+        
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: #4a6cf7;
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600;
+            cursor: pointer; 
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover { 
+            background: #3a5bd9;
+        }
+        
+        button:disabled { 
+            background: #aaa; 
+            cursor: not-allowed; 
+        }
+        
+        .links { 
+            margin-top: 25px; 
+            text-align: center; 
+        }
+        
+        .links a { 
+            color: #4a6cf7; 
+            text-decoration: none; 
+            font-size: 14px;
+        }
+        
+        .links a:hover { 
+            text-decoration: underline; 
+        }
+        
+        .message { 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            display: none; 
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            display: block; 
+        }
+        
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            display: block; 
+        }
+        
+        .loading { 
+            text-align: center; 
+            margin: 10px 0; 
+            display: none; 
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="register-box">
+            <h2>Create Account</h2>
+            
+            <div id="message" class="message"></div>
+            <div id="loading" class="loading">Processing...</div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="name" required placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Roll Number</label>
+                        <input type="text" id="rollNumber" required placeholder="e.g., CS2024001">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" required placeholder="your@email.com">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Year</label>
+                        <select id="year" required>
+                            <option value="">Select Year</option>
+                            <option value="1">1st Year</option>
+                            <option value="2">2nd Year</option>
+                            <option value="3">3rd Year</option>
+                            <option value="4">4th Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Semester</label>
+                        <select id="semester" required>
+                            <option value="">Select Semester</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Department</label>
+                    <select id="department" required>
+                        <option value="">Select Department</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Mechanical">Mechanical</option>
+                        <option value="Civil">Civil</option>
+                        <option value="Electrical">Electrical</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="password" required placeholder="Minimum 6 characters">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="confirmPassword" required placeholder="Re-enter password">
+                    </div>
+                </div>
+                
+                <button type="submit" id="submitBtn">Register</button>
+            </form>
+            
+            <div class="links">
+                Already have an account? <a href="index.html">Login here</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const rollNumber = document.getElementById('rollNumber').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const year = document.getElementById('year').value;
+            const semester = document.getElementById('semester').value;
+            const department = document.getElementById('department').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!name || !rollNumber || !email || !year || !semester || !department || !password || !confirmPassword) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showMessage('Password must be at least 6 characters', 'error');
+                return;
+            }
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showMessage('Please enter a valid email address', 'error');
+                return;
+            }
+            
+            setLoading(true);
+            
+            const userData = {
+                name, rollNumber, email, password, year, semester, department
+            };
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Registration successful! Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 2000);
+                } else {
+                    showMessage(data.error || 'Registration failed', 'error');
+                    setLoading(false);
+                }
+            } catch (error) {
+                showMessage('Connection error. Please try again.', 'error');
+                setLoading(false);
+            }
+        });
+        
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+        }
+        
+        function setLoading(isLoading) {
+            const loadingDiv = document.getElementById('loading');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (isLoading) {
+                loadingDiv.style.display = 'block';
+                submitBtn.disabled = true;
+            } else {
+                loadingDiv.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Classroom Notifier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f7fafc; }
+        .navbar { background: white; padding: 1rem 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; }
+        .nav-links a { margin-left: 20px; text-decoration: none; color: #4a5568; }
+        .nav-links a:hover { color: #667eea; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 20px; }
+        h2 { color: #2d3748; margin-bottom: 20px; }
+        .settings-card { background: white; border-radius: 10px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .setting-group { margin-bottom: 30px; padding-bottom: 30px; border-bottom: 1px solid #e2e8f0; }
+        .setting-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .setting-group h3 { color: #4a5568; margin-bottom: 20px; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+        .setting-label { color: #2d3748; font-weight: 500; }
+        .setting-description { color: #718096; font-size: 0.9rem; margin-top: 5px; }
+        select, input[type="number"] { padding: 8px; border: 1px solid #e2e8f0; border-radius: 5px; width: 200px; }
+        .days-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .day-checkbox { display: flex; align-items: center; gap: 8px; }
+        .day-checkbox input[type="checkbox"] { width: 18px; height: 18px; }
+        .save-btn { background: #48bb78; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 20px; }
+        .save-btn:hover { background: #38a169; }
+        .message { padding: 10px; border-radius: 5px; margin: 20px 0; display: none; }
+        .success { background: #c6f6d5; color: #22543d; display: block; }
+        .error { background: #fed7d7; color: #742a2a; display: block; }
+        .info { background: #bee3f8; color: #2c5282; display: block; }
+        .logout-btn { background: #e53e3e; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; }
+        
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: 0.4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: 0.4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #667eea; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        
+        ul { margin-left: 20px; margin-top: 10px; }
+        li { margin-bottom: 5px; }
+        
+        .delete-btn { background: #e53e3e; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; }
+        .delete-btn:hover { background: #c53030; }
+        .delete-btn:disabled { background: #ccc; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">📚 Classroom Notifier</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="timetable.html">Timetable</a>
+            <a href="settings.html">Settings</a>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>🔔 Notification Settings</h2>
+        <div id="message" class="message"></div>
+        
+        <div class="settings-card">
+            <div class="setting-group">
+                <h3>Email Notifications</h3>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Enable Email Alerts</div>
+                        <div class="setting-description">Receive notifications about class changes via email</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="emailEnabled" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Reminder Timing</h3>
+                <div class="setting-item">
+                    <div>
+                        <div class="setting-label">Notify me before class</div>
+                        <div class="setting-description">Choose how many minutes before class you want to be reminded</div>
+                    </div>
+                    <select id="reminderTime">
+                        <option value="5">5 minutes before</option>
+                        <option value="10" selected>10 minutes before</option>
+                        <option value="15">15 minutes before</option>
+                        <option value="30">30 minutes before</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <h3>Active Days</h3>
+                <div class="setting-description" style="margin-bottom: 15px;">Select days when you want to receive notifications</div>
+                <div class="days-grid" id="daysGrid"></div>
+            </div>
+
+            <button class="save-btn" onclick="saveSettings()">💾 Save Settings</button>
+        </div>
+
+        <!-- Danger Zone - Account Deletion -->
+        <div class="settings-card" style="border: 2px solid #e53e3e;">
+            <div class="setting-group">
+                <h3 style="color: #e53e3e;">Delete Account Permanently</h3>
+                
+                <div class="setting-item" style="margin-bottom: 20px;">
+                    <div>
+                        <div class="setting-description">This will permanently delete:</div>
+                        <ul>
+                            <li>Your account and profile information</li>
+                            <li>All your timetable data for all semesters</li>
+                            <li>Your notification settings</li>
+                            <li><strong style="color: #e53e3e;">This action cannot be undone!</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <button id="deleteAccountBtn" class="delete-btn" onclick="showDeleteConfirmation()">
+                     Delete My Account Permanently
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div style="background: white; max-width: 500px; margin: 20px; padding: 30px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h3 style="color: #e53e3e; margin-bottom: 20px;"> Confirm Account Deletion</h3>
+            <p style="margin-bottom: 20px;">Are you absolutely sure? This action is <strong>permanent and cannot be undone</strong>.</p>
+            <p style="margin-bottom: 20px; background: #fff5f5; padding: 10px; border-radius: 5px;">
+                <strong>This will delete:</strong><br>
+                • Your account<br>
+                • All timetable data<br>
+                • All notification settings
+            </p>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 10px;">Type <strong style="color: #e53e3e;">DELETE</strong> to confirm:</label>
+                <input type="text" id="confirmDeleteInput" placeholder="DELETE" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+            <div id="deleteError" style="color: #e53e3e; margin-bottom: 10px; display: none;"></div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="closeDeleteModal()" style="background: #718096; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Cancel</button>
+                <button id="confirmDeleteBtn" onclick="confirmDeleteAccount()" style="background: #e53e3e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Yes, Delete My Account</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const days = [
+            { id: 'monday', label: 'Monday' },
+            { id: 'tuesday', label: 'Tuesday' },
+            { id: 'wednesday', label: 'Wednesday' },
+            { id: 'thursday', label: 'Thursday' },
+            { id: 'friday', label: 'Friday' },
+            { id: 'saturday', label: 'Saturday' },
+            { id: 'sunday', label: 'Sunday' }
+        ];
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const settings = await response.json();
+                
+                document.getElementById('emailEnabled').checked = settings.emailEnabled ?? true;
+                document.getElementById('reminderTime').value = settings.reminderTime ?? 10;
+                
+                const daysGrid = document.getElementById('daysGrid');
+                daysGrid.innerHTML = days.map(day => `
+                    <div class="day-checkbox">
+                        <input type="checkbox" id="${day.id}" 
+                            ${settings.activeDays?.[day.id] ? 'checked' : (day.id === 'saturday' || day.id === 'sunday' ? '' : 'checked')}>
+                        <label for="${day.id}">${day.label}</label>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+        async function saveSettings() {
+            const settings = {
+                emailEnabled: document.getElementById('emailEnabled').checked,
+                reminderTime: parseInt(document.getElementById('reminderTime').value),
+                activeDays: {
+                    monday: document.getElementById('monday')?.checked ?? true,
+                    tuesday: document.getElementById('tuesday')?.checked ?? true,
+                    wednesday: document.getElementById('wednesday')?.checked ?? true,
+                    thursday: document.getElementById('thursday')?.checked ?? true,
+                    friday: document.getElementById('friday')?.checked ?? true,
+                    saturday: document.getElementById('saturday')?.checked ?? false,
+                    sunday: document.getElementById('sunday')?.checked ?? false
+                }
+            };
+            
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                
+                if (response.ok) {
+                    showMessage('Settings saved successfully!', 'success');
+                } else {
+                    showMessage('Error saving settings', 'error');
+                }
+            } catch (error) {
+                showMessage('Connection error', 'error');
+            }
+        }
+
+        // ==================== ACCOUNT DELETION FUNCTIONS ====================
+        function showDeleteConfirmation() {
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'flex';
+            document.getElementById('confirmDeleteInput').value = '';
+            document.getElementById('deleteError').style.display = 'none';
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'none';
+        }
+
+        async function confirmDeleteAccount() {
+            const confirmText = document.getElementById('confirmDeleteInput').value;
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            const errorDiv = document.getElementById('deleteError');
+            
+            if (confirmText !== 'DELETE') {
+                errorDiv.textContent = 'Please type DELETE to confirm';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            errorDiv.style.display = 'none';
+            
+            // Disable button during deletion
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = 'Deleting...';
+            
+            showMessage('Deleting account...', 'info');
+            
+            try {
+                console.log('Sending delete request...');
+                
+                const response = await fetch('/api/delete-account', {
+                    method: 'DELETE',
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                });
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    showMessage('✅ Account deleted successfully. Redirecting to login...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    showMessage('❌ Error: ' + (data.error || 'Unknown error'), 'error');
+                    closeDeleteModal();
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showMessage('❌ Error: ' + error.message, 'error');
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = 'Yes, Delete My Account';
+            }
+        }
+
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        // Load settings on page load
+        loadSettings();
+    </script>
+</body>
+</html>

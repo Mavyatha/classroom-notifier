@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Notifier - Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 0;
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 420px; 
+            padding: 20px; 
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-box { 
+            background: white;
+            padding: 40px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        h2 { 
+            color: #1a1a2e; 
+            margin-bottom: 30px; 
+            text-align: center;
+            font-size: 26px;
+            font-weight: 600;
+        }
+        
+        .input-group { 
+            margin-bottom: 20px; 
+        }
+        
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            color: #333; 
+            font-size: 14px; 
+            font-weight: 500;
+        }
+        
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            font-size: 15px; 
+            transition: all 0.3s ease;
+        }
+        
+        input:focus { 
+            outline: none; 
+            border-color: #4a6cf7;
+            box-shadow: 0 0 0 2px rgba(74, 108, 247, 0.1);
+        }
+        
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: #4a6cf7;
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: 600;
+            cursor: pointer; 
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        button:hover { 
+            background: #3a5bd9;
+        }
+        
+        .links { 
+            margin-top: 25px; 
+            text-align: center; 
+        }
+        
+        .links a { 
+            color: #4a6cf7; 
+            text-decoration: none; 
+            font-size: 14px; 
+        }
+        
+        .links a:hover { 
+            text-decoration: underline; 
+        }
+        
+        .message { 
+            padding: 10px; 
+            border-radius: 8px; 
+            margin-bottom: 20px; 
+            display: none; 
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            display: block; 
+        }
+        
+        .error-message { 
+            background: #f8d7da; 
+            color: #721c24; 
+            display: block; 
+        }
+        
+        .footer-text {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h2>Classroom Notifier</h2>
+            
+            <div id="message" class="message"></div>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Email or Roll Number</label>
+                    <input type="text" id="username" required placeholder="Enter your email or roll number">
+                </div>
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required placeholder="Enter your password">
+                </div>
+                <button type="submit">Login</button>
+            </form>
+            
+            <div class="links">
+                <a href="register.html">Create new account</a>
+            </div>
+        </div>
+        <div class="footer-text">
+            Never miss a classroom change again
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+            
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = data.redirect || 'dashboard.html';
+                    }, 1000);
+                } else {
+                    showMessage(data.error || 'Invalid credentials', 'error-message');
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            } catch (error) {
+                showMessage('Connection error. Please try again.', 'error-message');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+        
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

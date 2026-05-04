@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable - Classroom Notifier</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f7fafc; }
+        .navbar { background: white; padding: 1rem 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: #667eea; }
+        .nav-links a { margin-left: 20px; text-decoration: none; color: #4a5568; }
+        .nav-links a:hover { color: #667eea; }
+        .container { max-width: 1400px; margin: 2rem auto; padding: 0 20px; }
+        h2 { color: #2d3748; margin-bottom: 20px; }
+        
+        .days-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-top: 20px; }
+        .day-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .day-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .day-header h3 { color: #2d3748; }
+        .add-btn { background: #667eea; color: white; border: none; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; font-size: 18px; }
+        .add-btn:hover { background: #5a67d8; }
+        .slot { background: #f7fafc; padding: 15px; margin-bottom: 10px; border-radius: 5px; position: relative; border-left: 4px solid #667eea; }
+        .slot-time { font-weight: bold; color: #667eea; margin-bottom: 8px; }
+        .slot-time input { padding: 5px; border: 1px solid #e2e8f0; border-radius: 3px; width: 80px; }
+        .slot-subject input { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 5px; margin-bottom: 8px; font-weight: bold; }
+        .slot-details { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        .slot-details input { padding: 6px; border: 1px solid #e2e8f0; border-radius: 5px; width: 100%; }
+        .delete-slot { 
+            position: absolute; 
+            top: 10px; 
+            right: 10px; 
+            background: #e53e3e; 
+            color: white; 
+            border: none; 
+            width: 25px; 
+            height: 25px; 
+            border-radius: 3px; 
+            cursor: pointer; 
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .delete-slot:hover { background: #c53030; }
+        .save-btn { 
+            background: #48bb78; 
+            color: white; 
+            border: none; 
+            padding: 12px 30px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            margin-top: 20px; 
+            width: 100%;
+            transition: background 0.2s;
+        }
+        .save-btn:hover { background: #38a169; }
+        .message { padding: 15px; border-radius: 5px; margin: 20px 0; display: none; }
+        .success { background: #c6f6d5; color: #22543d; display: block; }
+        .error { background: #fed7d7; color: #742a2a; display: block; }
+        .info { background: #bee3f8; color: #2c5282; display: block; }
+        .logout-btn { background: #e53e3e; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; }
+        
+        .quick-add-panel { background: #f0f4f8; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .quick-add-panel h3 { margin-bottom: 10px; color: #2d3748; }
+        .quick-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: end; }
+        .quick-form select, .quick-form input { padding: 8px; border: 1px solid #e2e8f0; border-radius: 5px; }
+        .quick-form button { background: #667eea; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
+        .quick-form button:hover { background: #5a67d8; }
+        
+        .warning-text { color: #e53e3e; font-size: 12px; margin-top: 5px; display: none; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">📚 Classroom Notifier</div>
+        <div class="nav-links">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="timetable.html">Timetable</a>
+            <a href="settings.html">Settings</a>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>📅 My Weekly Timetable</h2>
+        
+        <!-- Quick Add Panel -->
+        <div class="quick-add-panel">
+            <h3>⚡ Quick Add Class</h3>
+            <div class="quick-form">
+                <select id="quickDay">
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                </select>
+                <input type="time" id="quickStart" value="09:00">
+                <input type="time" id="quickEnd" value="09:50">
+                <input type="text" id="quickSubject" placeholder="Subject *">
+                <input type="text" id="quickFaculty" placeholder="Faculty">
+                <input type="text" id="quickRoom" placeholder="Room No">
+                <button onclick="quickAddClass()">+ Add Class</button>
+            </div>
+        </div>
+        
+        <div id="message" class="message"></div>
+        
+        <div class="days-grid" id="daysContainer"></div>
+        
+        <button class="save-btn" onclick="saveAllTimetables()">💾 Save All Changes</button>
+    </div>
+
+    <script>
+        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        let timetables = {};
+
+        // Initialize empty slots for each day
+        days.forEach(day => {
+            timetables[day] = [];
+        });
+
+        async function loadTimetables() {
+            try {
+                const response = await fetch('/api/timetable');
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    // Reset timetables
+                    days.forEach(day => {
+                        timetables[day] = [];
+                    });
+                    
+                    data.forEach(tt => {
+                        if (tt.slots && tt.slots.length > 0) {
+                            timetables[tt.day] = tt.slots;
+                        }
+                    });
+                }
+                renderDays();
+            } catch (error) {
+                console.error('Error loading timetables:', error);
+                renderDays();
+            }
+        }
+
+        function renderDays() {
+            const container = document.getElementById('daysContainer');
+            container.innerHTML = '';
+            
+            days.forEach(day => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.innerHTML = `
+                    <div class="day-header">
+                        <h3>${day}</h3>
+                        <button class="add-btn" onclick="addSlot('${day}')">+</button>
+                    </div>
+                    <div id="slots-${day}">
+                        ${renderSlots(day)}
+                    </div>
+                `;
+                container.appendChild(dayCard);
+            });
+        }
+
+        function renderSlots(day) {
+            const slots = timetables[day] || [];
+            if (slots.length === 0) {
+                return '<p style="color: #a0aec0; text-align: center; padding: 20px;">No classes scheduled<br>Click + to add</p>';
+            }
+            
+            return slots.map((slot, index) => `
+                <div class="slot" data-day="${day}" data-index="${index}">
+                    <button class="delete-slot" onclick="deleteSlot('${day}', ${index})" title="Delete this class">×</button>
+                    <div class="slot-time">
+                        <input type="time" id="${day}-${index}-start" value="${slot.startTime || '09:00'}"> - 
+                        <input type="time" id="${day}-${index}-end" value="${slot.endTime || '09:50'}">
+                    </div>
+                    <div class="slot-subject">
+                        <input type="text" id="${day}-${index}-subject" placeholder="Subject" value="${slot.subject || ''}">
+                    </div>
+                    <div class="slot-details">
+                        <input type="text" id="${day}-${index}-faculty" placeholder="Faculty" value="${slot.faculty || ''}">
+                        <input type="text" id="${day}-${index}-building" placeholder="Building" value="${slot.building || 'Main Block'}">
+                        <input type="text" id="${day}-${index}-room" placeholder="Room No" value="${slot.roomNo || ''}">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addSlot(day) {
+            if (!timetables[day]) {
+                timetables[day] = [];
+            }
+            
+            timetables[day].push({
+                startTime: '09:00',
+                endTime: '09:50',
+                subject: '',
+                faculty: '',
+                building: 'Main Block',
+                roomNo: ''
+            });
+            
+            renderDays();
+            // Scroll to the newly added slot
+            setTimeout(() => {
+                const slots = document.getElementById(`slots-${day}`);
+                if (slots) {
+                    slots.lastChild?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+
+        function deleteSlot(day, index) {
+            const subject = timetables[day][index]?.subject || 'this class';
+            if (confirm(`Delete "${subject}" from ${day}?`)) {
+                timetables[day].splice(index, 1);
+                renderDays();
+                showMessage(`🗑️ Deleted "${subject}" from ${day}`, 'success');
+            }
+        }
+
+        function quickAddClass() {
+            const day = document.getElementById('quickDay').value;
+            const startTime = document.getElementById('quickStart').value;
+            const endTime = document.getElementById('quickEnd').value;
+            const subject = document.getElementById('quickSubject').value.trim();
+            const faculty = document.getElementById('quickFaculty').value.trim();
+            const room = document.getElementById('quickRoom').value.trim();
+            
+            if (!subject) {
+                showMessage('⚠️ Please enter a subject name', 'error');
+                return;
+            }
+            
+            if (!timetables[day]) {
+                timetables[day] = [];
+            }
+            
+            timetables[day].push({
+                startTime: startTime,
+                endTime: endTime,
+                subject: subject,
+                faculty: faculty || 'Unknown',
+                building: 'Main Block',
+                roomNo: room || 'TBD'
+            });
+            
+            // Clear quick form
+            document.getElementById('quickSubject').value = '';
+            document.getElementById('quickFaculty').value = '';
+            document.getElementById('quickRoom').value = '';
+            
+            renderDays();
+            showMessage(`✅ Added "${subject}" to ${day}`, 'success');
+            
+            // Scroll to the day where class was added
+            const dayElement = document.querySelector(`.day-card h3`).closest('.day-card');
+            if (dayElement) {
+                dayElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        async function saveAllTimetables() {
+            // Collect all data from inputs
+            days.forEach(day => {
+                const slots = timetables[day] || [];
+                slots.forEach((slot, index) => {
+                    const startInput = document.getElementById(`${day}-${index}-start`);
+                    const endInput = document.getElementById(`${day}-${index}-end`);
+                    const subjectInput = document.getElementById(`${day}-${index}-subject`);
+                    const facultyInput = document.getElementById(`${day}-${index}-faculty`);
+                    const buildingInput = document.getElementById(`${day}-${index}-building`);
+                    const roomInput = document.getElementById(`${day}-${index}-room`);
+                    
+                    if (startInput) slot.startTime = startInput.value;
+                    if (endInput) slot.endTime = endInput.value;
+                    if (subjectInput) slot.subject = subjectInput.value;
+                    if (facultyInput) slot.faculty = facultyInput.value;
+                    if (buildingInput) slot.building = buildingInput.value;
+                    if (roomInput) slot.roomNo = roomInput.value;
+                });
+            });
+            
+            // Show saving indicator
+            const saveBtn = document.querySelector('.save-btn');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = '💾 Saving...';
+            saveBtn.disabled = true;
+            
+            // Save each day
+            let success = true;
+            let savedCount = 0;
+            
+            for (const day of days) {
+                const validSlots = (timetables[day] || []).filter(slot => slot.subject && slot.subject.trim() !== '');
+                if (validSlots.length > 0 || (timetables[day] && timetables[day].length === 0)) {
+                    try {
+                        const response = await fetch('/api/timetable', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ day, slots: validSlots })
+                        });
+                        
+                        if (response.ok) {
+                            savedCount++;
+                            success = true;
+                        } else {
+                            success = false;
+                        }
+                    } catch (err) {
+                        success = false;
+                    }
+                }
+            }
+            
+            saveBtn.textContent = originalText;
+            saveBtn.disabled = false;
+            
+            if (success) {
+                showMessage(`✅ Timetable saved successfully! (${savedCount} days updated)`, 'success');
+            } else {
+                showMessage('❌ Error saving some entries. Please try again.', 'error');
+            }
+        }
+
+        function showMessage(msg, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = msg;
+            messageDiv.className = `message ${type}`;
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function logout() {
+            window.location.href = '/logout';
+        }
+
+        // Load timetables on page load
+        loadTimetables();
+    </script>
+</body>
+</html>
